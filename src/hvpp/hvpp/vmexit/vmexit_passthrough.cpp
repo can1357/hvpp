@@ -23,46 +23,47 @@ namespace detail
 {
   static const uint8_t* skip_prefixes(const uint8_t* first, const uint8_t* last) noexcept
   {
-	  //
-	  // Return the first byte of the opcode that is not a prefix.
-	  //
-	  return std::find_if(first, last, [&](uint8_t byte){		  
-		  //
-		  // List of prefix types that should be skipped, LOCK is not included as it'd #UD.
-		  //
-		  static constexpr uint8_t skip_table[] = {
-			  0xF2, 0xF3, 0x2E, 0x36, 0x3E, 0x26, 0x64, 0x65, 0x2E, 0x3E, 0x66, 0x67
-		  };
-		  return std::find(std::begin(skip_table), std::end(skip_table), byte) == std::end(skip_table);
-	  }
+    //
+    // Return the first byte of the opcode that is not a prefix.
+    //
+    return std::find_if( first, last, [&](uint8_t byte)
+    {
+      //
+      // List of prefix types that should be skipped, LOCK is not included as it'd #UD.
+      //
+      static constexpr uint8_t skip_table[] = {
+        0x26, 0x2E, 0x3E, 0x36, 0x64, 0x65, 0x66, 0x67, 0xF2, 0xF3
+      };
+      return !std::binary_search( std::begin( skip_table ), std::end( skip_table ), byte );
+    } );
   }
   
   static bool is_syscall_instruction(const uint8_t* first, const uint8_t* last) noexcept
   {
     static constexpr uint8_t opcode[] = { 0x0f, 0x05 };
     first = skip_prefixes(first, last);
-    return (last-first) >= std::size(opcode) && memcmp(first, opcode, sizeof(opcode)) == 0;
+    return static_cast<size_t>(last-first) >= std::size(opcode) && memcmp(first, opcode, sizeof(opcode)) == 0;
   }
 
   static bool is_sysret_instruction(const uint8_t* first, const uint8_t* last) noexcept
   {
     static constexpr uint8_t opcode[] = { 0x48, 0x0f, 0x07 };
     first = skip_prefixes(first, last);
-    return (last-first) >= std::size(opcode) && memcmp(first, opcode, sizeof(opcode)) == 0;
+    return static_cast<size_t>(last-first) >= std::size(opcode) && memcmp(first, opcode, sizeof(opcode)) == 0;
   }
 
   static bool is_rdtsc_instruction(const uint8_t* first, const uint8_t* last) noexcept
   {
     static constexpr uint8_t opcode[] = { 0x0f, 0x31 };
     first = skip_prefixes(first, last);
-    return (last-first) >= std::size(opcode) && memcmp(first, opcode, sizeof(opcode)) == 0;
+    return static_cast<size_t>(last-first) >= std::size(opcode) && memcmp(first, opcode, sizeof(opcode)) == 0;
   }
 
   static bool is_rdtscp_instruction(const uint8_t* first, const uint8_t* last) noexcept
   {
     static constexpr uint8_t opcode[] = { 0x0f, 0x01, 0xf9 };
     first = skip_prefixes(first, last);
-    return (last-first) >= std::size(opcode) && memcmp(first, opcode, sizeof(opcode)) == 0;
+    return static_cast<size_t>(last-first) >= std::size(opcode) && memcmp(first, opcode, sizeof(opcode)) == 0;
   }
 }
 
